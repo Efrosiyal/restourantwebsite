@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - "5173:5173"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://backend:3000
+  #   depends_on:
+  #     - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:8CtY0sd9y4vnL88k@db.hjbqpafgpmbxxzsewiql.supabase.co:5432/
+      - SUPABASE_URL=https://hjbqpafgpmbxxzsewiql.supabase.co
+      - SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqYnFwYWZncG1ieHh6c2V3aXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1NTA0MzcsImV4cCI6MjA1ODEyNjQzN30.vnloQGQFpAdwl8HNducqf3bk5nEH6qH2ux3TgYrXJrA
+      - CLOUD_NAME=dn3bikzbm
+      - CLOUD_API_KEY=981729533377435
+      - CLOUD_API_SECRET=-oBrcVu--X-2H3mW4npAzYHqzIw
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379" 
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"    
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock    
